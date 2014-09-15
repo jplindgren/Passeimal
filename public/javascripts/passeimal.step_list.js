@@ -11,8 +11,7 @@
 	};
 
 	Passeimal.StepList.prototype.onAdd = function(step) {
-		console.log(Handlebars.templates.step_template);
-		var rendered = Handlebars.templates["step_template"](step).html();
+		var rendered = Handlebars.templates.step(step);
 		this.htmlList.append(rendered);
 	};
 })(Passeimal)
