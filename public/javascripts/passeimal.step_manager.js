@@ -25,6 +25,9 @@
 
 	Passeimal.StepManager.prototype.whenSavingStep = function(step) {
 		this.emitter.emit("add", step);
+		console.log(this.stepInput);
+		console.log(this.stepInput.clear());
+		this.stepInput.clear();
 	};
 
 	Passeimal.StepManager.prototype.whenInvalidStep = function(step) {

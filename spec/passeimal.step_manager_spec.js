@@ -4,16 +4,18 @@ describe("Step.StepManager", function(){
 	beforeEach(function(){
 		//we just need stepInput to trigger a enter event. We can instantiate any object that triggers it. 
 		//some kind of mock
-		stepInput = async.emitter();
-		spyOn(stepInput, "on"); //we spy stepInput.on to check if it was called
+		//stepInput = async.emitter();
+		//spyOn(stepInput, "on"); //we spy stepInput.on to check if it was called
+
+		stepInput = jasmine.createSpyObj("stepInput", ["on","clear"]);
 		manager = new Passeimal.StepManager(stepInput);
 
 	 	// mock/double (fake object)
-	    step = jasmine.createSpyObj("step", ["on", "save", "errors"]);
-	    // stub (forges method/function call)
-	    spyOn(Passeimal, "Step").and.returnValue(step);
-	    //create generic callback
-	    callback = jasmine.createSpy();
+    step = jasmine.createSpyObj("step", ["on", "save", "errors"]);
+    // stub (forges method/function call)
+    spyOn(Passeimal, "Step").and.returnValue(step);
+    //create generic callback
+    callback = jasmine.createSpy();
 	});
 
 	it("sets event listeners", function(){
@@ -23,39 +25,44 @@ describe("Step.StepManager", function(){
 	it("initializes step with attributes", function() {
 	    manager.onEnter("Some step");
 	    expect(Passeimal.Step).toHaveBeenCalledWith({ description: "Some step" });
-    });
+  });
 
-    it("listens to the step's save event", function() {
-    	spyOn($, "proxy").and.returnValue(callback);
-    	manager.onEnter("Some step");
-    	expect(step.on).toHaveBeenCalledWith("save", callback);
-    	expect($.proxy).toHaveBeenCalledWith(manager, "whenSavingStep");
-    });
+  it("listens to the step's save event", function() {
+  	spyOn($, "proxy").and.returnValue(callback);
+  	manager.onEnter("Some step");
+  	expect(step.on).toHaveBeenCalledWith("save", callback);
+  	expect($.proxy).toHaveBeenCalledWith(manager, "whenSavingStep");
+  });
 
-    it("listens to the step's invalid event", function() {
-    	spyOn($, "proxy").and.returnValue(callback);
-    	manager.onEnter("");
-    	expect(step.on).toHaveBeenCalledWith("invalid", callback);
-    	expect($.proxy).toHaveBeenCalledWith(manager, "whenInvalidStep");
-    });
+  it("listens to the step's invalid event", function() {
+  	spyOn($, "proxy").and.returnValue(callback);
+  	manager.onEnter("");
+  	expect(step.on).toHaveBeenCalledWith("invalid", callback);
+  	expect($.proxy).toHaveBeenCalledWith(manager, "whenInvalidStep");
+  });
 
-    it("saves step", function() {
-    	manager.onEnter("Some step");
-    	expect(step.save).toHaveBeenCalled();
-  	});
+  it("saves step", function() {
+  	manager.onEnter("Some step");
+  	expect(step.save).toHaveBeenCalled();
+	});
 
-  	it("triggers add event when saving step", function() {
-  		manager.on("add", callback);
-  		manager.whenSavingStep(step);
-  		expect(callback).toHaveBeenCalledWith(step);
-  	});
+	it("triggers add event when saving step", function() {
+		manager.on("add", callback);
+		manager.whenSavingStep(step);
+		expect(callback).toHaveBeenCalledWith(step);
+	});
 
-  	it("displays error message", function() {
-	    step = { errors: ["Error 1", "Error 2"] };
+	it("displays error message", function() {
+    step = { errors: ["Error 1", "Error 2"] };
 
-	    spyOn(window, "alert");
-	    manager.whenInvalidStep(step);
+    spyOn(window, "alert");
+    manager.whenInvalidStep(step);
 
-	    expect(window.alert).toHaveBeenCalledWith("Error 1\nError 2");
+    expect(window.alert).toHaveBeenCalledWith("Error 1\nError 2");
+  });
+
+  it("clears content when saving step", function() {
+		manager.whenSavingStep(step);
+		expect(stepInput.clear).toHaveBeenCalled();
   });
 });

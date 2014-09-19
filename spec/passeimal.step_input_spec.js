@@ -36,4 +36,10 @@ describe("Passeimal.StepInput", function(){
 
 		expect(callback).toHaveBeenCalledWith("some thing");
 	});
+
+	it("clears content", function() {
+		stepInput.clear();
+		expect(input.val()).toEqual('');
+	});
+
 });

@@ -11,6 +11,10 @@
 		this.element.on("keydown", $.proxy(this, "onKeyDown"))
 	};
 
+	Passeimal.StepInput.prototype.clear = function() {
+		this.element.val('');
+	};
+
 	Passeimal.StepInput.prototype.onKeyDown = function(event) {
 		if (event.which !== 13 && event.which !== 9)
 			return true;
