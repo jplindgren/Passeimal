@@ -41,16 +41,41 @@ describe("Step.StepManager", function(){
   	expect($.proxy).toHaveBeenCalledWith(manager, "whenInvalidStep");
   });
 
-  it("saves step", function() {
+  it("listens to the step's destroy event", function() {
+    spyOn($, "proxy").and.returnValue(callback);
+    manager.onEnter("");
+    expect(step.on).toHaveBeenCalledWith("destroy", callback);
+    expect($.proxy).toHaveBeenCalledWith(manager, "whenDestroyingStep");
+  });
+
+  it("should saves step", function() {
   	manager.onEnter("Some step");
   	expect(step.save).toHaveBeenCalled();
 	});
+
+  it("should add step to cache list when saving", function() {
+    step.id = "1234";
+    manager.whenSavingStep(step);
+    expect(manager.stepsCache[step.id]).toEqual(step);
+  });
 
 	it("triggers add event when saving step", function() {
 		manager.on("add", callback);
 		manager.whenSavingStep(step);
 		expect(callback).toHaveBeenCalledWith(step);
 	});
+
+  it("triggers destroy event when destroing step", function() {
+    manager.on("destroy", callback);
+    manager.whenDestroyingStep(step);
+    expect(callback).toHaveBeenCalledWith(step);
+  });
+
+  it("should remove step from cache list when destroying", function() {
+    manager.stepsCache[step.id] = step;
+    manager.whenDestroyingStep(step);
+    expect(manager.stepsCache).not.toBeDefined();
+  });
 
 	it("displays error message", function() {
     step = { errors: ["Error 1", "Error 2"] };

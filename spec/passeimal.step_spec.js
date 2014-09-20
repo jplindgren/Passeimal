@@ -52,4 +52,10 @@ describe("Passeimal.Step", function(){
 
 		expect(callback).toHaveBeenCalledWith(step);
 	});
+
+	it("should emit destroy signal", function() {
+		step.on("destroy", callback);
+		step.destroy();
+		expect(callback).toHaveBeenCalledWith(step);		
+	});
 });

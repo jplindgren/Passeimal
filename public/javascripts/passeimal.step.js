@@ -17,7 +17,7 @@
 
 	Passeimal.Step.prototype.save = function() {
 		if (this.isValid()){
-			this.id = "1234";
+			this.id = Math.floor((Math.random() * 10000) + 1);
 			this.emitter.emit("save", this);
 		}else{
 			this.emitter.emit("invalid", this);
@@ -31,5 +31,9 @@
 			return false;
 		}
 		return true;
+	};
+
+	Passeimal.Step.prototype.destroy = function() {
+		this.emitter.emit("destroy", this);
 	};
 })(Passeimal);

@@ -11,7 +11,7 @@ describe("Passeimal.StepInput", function(){
 		event = $.Event("keydown"); //creates a new event
 		event.which = 13;
 
-		stepInput.emitter.on("enter", callback);
+		stepInput.on("enter", callback);
 		input.trigger(event); //mimic <enter> key
 
 		expect(callback).toHaveBeenCalled();
@@ -21,7 +21,7 @@ describe("Passeimal.StepInput", function(){
 		event = $.Event("keydown");
 		event.which = 27;
 
-		stepInput.emitter.on("enter", callback);
+		stepInput.on("enter", callback);
 		input.trigger(event); //mimic <enter> key
 
 		expect(callback).not.toHaveBeenCalled();
@@ -31,7 +31,7 @@ describe("Passeimal.StepInput", function(){
 		event = $.Event("keydown"); //creates a new event
 		event.which = 13;
 
-		stepInput.emitter.on("enter", callback);
+		stepInput.on("enter", callback);
 		input.trigger(event); //mimic <enter> key
 
 		expect(callback).toHaveBeenCalledWith("some thing");
