@@ -74,7 +74,8 @@ describe("Step.StepManager", function(){
   it("should remove step from cache list when destroying", function() {
     manager.stepsCache[step.id] = step;
     manager.whenDestroyingStep(step);
-    expect(manager.stepsCache).not.toBeDefined();
+    console.log(manager.stepsCache);
+    expect(manager.stepsCache).toEqual({});
   });
 
 	it("displays error message", function() {

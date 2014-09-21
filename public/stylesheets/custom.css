@@ -2,3 +2,12 @@ span.remove:hover{
 	font-size: 18px;
 	cursor: pointer;
 }
+
+.step-input{
+	height:80px;
+    font-size:1.8em;
+}
+
+.step-item{
+	font-size:1.2em;
+}
