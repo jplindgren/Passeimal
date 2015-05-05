@@ -11,7 +11,6 @@
 		for (var name in attributes){
 			if (!attributes.hasOwnProperty(name))
 				continue;
-			console.log(name);
 			this[name] = attributes[name];
 		}
 	};
@@ -41,7 +40,7 @@
 	    var result; // hoisting
 
 	    result = $.ajax({
-	        url: "http://localhost:12118/api/v1/step/" + this.id
+	        url: Passeimal.GlobalConfig.resolveUrl('/steps/' + this.id)
 	      , type: "delete"
 	      , dataType: "json"
 	    });
@@ -52,12 +51,12 @@
   	};
 
   Passeimal.Step.prototype.create = function() {
-  	//this.id = Math.floor((Math.random() * 10000) + 1);
-	
+		console.log(JSON.stringify(this.attributes()));
     var result = $.ajax({
-        url: "http://localhost:12118/api/v1/step"
+        url: Passeimal.GlobalConfig.resolveUrl('/steps')
       , type: "POST"
-      , data: this.attributes()
+      , contentType: 'application/json'
+      , data: JSON.stringify(this.attributes()) 
       , dataType: "json"
     });
 
