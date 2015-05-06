@@ -10,7 +10,6 @@
 		};
 
 		var insertControl = function(control, position) {
-			console.log(this);
 			var mapPosition = google.maps.ControlPosition.TOP_LEFT;
 			if (position == 'top-left')
 				mapPosition = google.maps.ControlPosition.TOP_LEFT;
@@ -18,8 +17,8 @@
 		};
 
 		var insertAutocomplete = function(input, options, position){
-			console.log(this);
-			insertControl(input, position).bind(this);
+			var insertAutoComplete = insertControl.bind(this);
+			insertAutoComplete(input, position);
 
 			this.autocomplete = new google.maps.places.Autocomplete(input, options);
 			this.autocomplete.bindTo('bounds', this.map);
