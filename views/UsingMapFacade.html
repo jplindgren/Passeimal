@@ -63,23 +63,23 @@
     
     <script>
       function initialize(){
-          var map = new Passeimal.Map();
-          var mapOptions = {
-            center: new google.maps.LatLng(-22.90504, -43.17610),
-            zoom: 13
-          };
+        var map = new Passeimal.Map();
+        var mapOptions = {
+          center: new google.maps.LatLng(-33.8688, 151.2195),
+          zoom: 13
+        };
 
-          map.init(document.getElementById('map-canvas'), mapOptions);
+        map.init(document.getElementById('map-canvas'), mapOptions);
 
-          var input = document.getElementById('pac-input');
-          var types = document.getElementById('type-selector');
+        var input = (document.getElementById('pac-input'));
+        var types = document.getElementById('type-selector');
 
-          var autocompleteOptions = {
-            types: ['restaurant'],
-            componentRestrictions: { country: 'br' }
-          };        
-          map.insertAutocomplete(input, {});
-          map.insertControl(types);        
+        var autocompleteOptions = {
+          types: ['restaurant'],
+          componentRestrictions: { country: 'br' }
+        };        
+        map.insertAutocomplete(input, autocompleteOptions);
+        map.insertControl(types);
       }
 
 function initialize2() {
