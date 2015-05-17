@@ -89,6 +89,7 @@ function initialize() {
     infowindow.close();
     marker.setVisible(false);
     var place = autocomplete.getPlace();
+    console.log(place);
     if (!place.geometry) {
       window.alert("Autocomplete's returned place contains no geometry");
       return;

@@ -1,16 +1,55 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Place searches</title>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Passei mal</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../public/stylesheets/custom.css" rel="stylesheet">
+    <link href="../public/stylesheets/star-rating.css" rel="stylesheet">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
     <style>
       html, body, #map-canvas {
         height: 100%;
         margin: 0px;
         padding: 0px
       }
+
+      .place-info-window {
+        cursor: default;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+        margin-top: 3px;
+        margin-bottom: 7px;
+      }
+
+      .place-info-window-bottom{
+        cursor: default;
+        margin-top: 3px;
+        margin-bottom: 3px;
+      }
     </style>
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+  </body>
+
+    <script>
+      var Passeimal;
+      window.Passeimal = Passeimal = {};
+    </script>
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="../public/javascripts/libs/star-rating.js"></script>
+    <script src="../public/javascripts/passeimal.config.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
     <script>
         var map;
@@ -26,47 +65,68 @@
                 zoom: 15
             });
 
-            var request = {
-                location: rioDeJaneiroCityCenter,
-                radius: 500,
-                types: ['restaurant']
-            };
             infowindow = new google.maps.InfoWindow();
-            var service = new google.maps.places.PlacesService(map);
-            service.nearbySearch(request, callback);
-        }
-
-        function callback(results, status) {
-          if (status == google.maps.places.PlacesServiceStatus.OK) {
-            for (var i = 0; i < results.length; i++) {
-              createMarker(results[i]);
-            }
-          }
+            $.ajax({
+              url: Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + mylat + '&longitude=' + mylong),
+              dataType: 'json'
+            }).done(function(data){
+              for (var i = 0; i < data.results.length; i++) {
+                console.log(data.results[i]);
+                createMarker(data.results[i]);
+              }
+            });
         }
 
         function createMarker(place) {
-          var placeLoc = place.geometry.location;
+          var placeLoc = new google.maps.LatLng(place.latitude,place.longitude);
           var marker = new google.maps.Marker({
             map: map,
-            position: place.geometry.location
+            position: placeLoc,
+            title: place.name,
+            icon: place.icon
           });
 
           google.maps.event.addListener(marker, 'click', function() {
-            infowindow.setContent(place.name);
+            infowindow.setContent('<div><div class="place-info-window"> <strong>' + place.name + '</strong><br>' + place.formattedAddress + '</div> ' + 
+              '<div class="place-info-window-bottom"> <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> <strong>Puck?</strong><br/> ' +
+              ' <input class="rb-rating" data-id="' + place.id +'"> </div> ' +
+              '</div>');
             infowindow.open(map, this);
+            $('.rb-rating').rating({
+              'showCaption':true, 
+              'stars':'3', 
+              'min':'0', 'max':'3', 
+              'step':'1', 'size':'xs', 
+              'starCaptions': { 0: 'OK', 1:'Não me caiu bem...', 2:'Fiquei mal', 3:'Fui pro trono durante dias!' },
+              'starCaptionClasses': { 1: 'label label-primary', 2: 'label label-warning', 3: 'label label-danger' }
+            });
+            $('.rb-rating').on('rating.change', function(e) {
+              console.log(e);
+              console.log(e.target);
+              console.log($(e.target).val());
+              //console.log($('#rating-input').val());
+            });
           });
 
-          google.maps.event.addListener(map, 'bounds_changed', function(e) {
-            console.log('bounds_changed');
-            console.log(e);
+          google.maps.event.addListener(map,'dragend',function(e){
+            //console.log('dragend');
+            //console.log(e);
+          });
+
+          google.maps.event.addListener(map, 'idle', function(e) {
+            var center = map.getCenter();
+            $.ajax({
+              url: Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + center.A + '&longitude=' + center.F),
+              dataType: 'json'
+            }).done(function(data){
+              for (var i = 0; i < data.results.length; i++) {
+                console.log(data.results[i]);
+                createMarker(data.results[i]);
+              }
+            });
           });
         }
 
         google.maps.event.addDomListener(window, 'load', initialize);
-
     </script>
-  </head>
-  <body>
-    <div id="map-canvas"></div>
-  </body>
 </html>
