@@ -87,9 +87,20 @@
           });
 
           google.maps.event.addListener(marker, 'click', function() {
+            var catalog = $.parseJSON(sessionStorage.getItem('pukeCatalog')) || [];
+            console.log(catalog);
+            console.log(catalog.toString());
+            var pukeValue = 0;
+            for (var i = catalog.length - 1; i >= 0; i--) {
+              if (catalog[i].placeId === place.id){
+                pukeValue = catalog[i].pukeVal;
+                break;
+              }
+            };
+
             infowindow.setContent('<div><div class="place-info-window"> <strong>' + place.name + '</strong><br>' + place.formattedAddress + '</div> ' + 
-              '<div class="place-info-window-bottom"> <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> <strong>Puck?</strong><br/> ' +
-              ' <input class="rb-rating" data-id="' + place.id +'"> </div> ' +
+              '<div class="place-info-window-bottom"> <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> <strong>puke?</strong><br/> ' +
+              ' <input data-symbol="*" value="' + pukeValue +'" class="rb-rating" data-id="' + place.id +'"> </div> ' +
               '</div>');
             infowindow.open(map, this);
             $('.rb-rating').rating({
@@ -101,10 +112,24 @@
               'starCaptionClasses': { 1: 'label label-primary', 2: 'label label-warning', 3: 'label label-danger' }
             });
             $('.rb-rating').on('rating.change', function(e) {
-              console.log(e);
-              console.log(e.target);
-              console.log($(e.target).val());
-              //console.log($('#rating-input').val());
+              var puke = $(e.target);
+              var pukeData = {
+                placeId: puke.data('id'),
+                pukeVal: puke.val()
+              }
+              $.ajax({
+                url: Passeimal.GlobalConfig.resolveUrl('/places'),
+                method: 'PUT',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(pukeData)
+              }).done(function(){
+                var catalog = $.parseJSON(sessionStorage.getItem('pukeCatalog')) || [];
+                //later save pukeId to allow user edit his puke
+                catalog.push(pukeData);
+                
+                sessionStorage.setItem('pukeCatalog', JSON.stringify(catalog));
+              });
             });
           });
 
@@ -115,6 +140,7 @@
 
           google.maps.event.addListener(map, 'idle', function(e) {
             var center = map.getCenter();
+            console.log(Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + center.A + '&longitude=' + center.F));
             $.ajax({
               url: Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + center.A + '&longitude=' + center.F),
               dataType: 'json'
