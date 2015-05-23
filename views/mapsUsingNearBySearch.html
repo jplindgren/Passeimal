@@ -36,9 +36,40 @@
         margin-top: 3px;
         margin-bottom: 3px;
       }
+
+      .controls {
+        margin-top: 16px;
+        border: 1px solid transparent;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        height: 48px;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 25px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 400px;
+      }
+
+      #pac-input:focus {
+        border-color: #4d90fe;
+      }
+
+      .pac-container {
+        font-family: Roboto;
+      }
     </style>
   </head>
   <body>
+    <input id="pac-input" class="controls" type="text" placeholder="Digite um local...">
     <div id="map-canvas"></div>
   </body>
 
@@ -52,107 +83,106 @@
     <script src="../public/javascripts/passeimal.config.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
     <script>
-        var map;
-        var infowindow;
+        $().ready(function() {
+            var map;
+            var infowindow;
+            var markers = [];
+            initialize();
+            function initialize() {
+                var mylat = -22.90504;
+                var mylong = -43.17610;
+                var rioDeJaneiroCityCenter = new google.maps.LatLng(mylat, mylong);
 
-        function initialize() {
-            var mylat = -22.90504;
-            var mylong = -43.17610;
-            var rioDeJaneiroCityCenter = new google.maps.LatLng(mylat, mylong);
+                map = new google.maps.Map(document.getElementById('map-canvas'), {
+                    center: rioDeJaneiroCityCenter,
+                    zoom: 15
+                });
 
-            map = new google.maps.Map(document.getElementById('map-canvas'), {
-                center: rioDeJaneiroCityCenter,
-                zoom: 15
-            });
+                var input = /** @type {HTMLInputElement} */(document.getElementById('pac-input'));
 
-            infowindow = new google.maps.InfoWindow();
-            $.ajax({
-              url: Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + mylat + '&longitude=' + mylong),
-              dataType: 'json'
-            }).done(function(data){
-              for (var i = 0; i < data.results.length; i++) {
-                console.log(data.results[i]);
-                createMarker(data.results[i]);
-              }
-            });
-        }
+                //var types = document.getElementById('type-selector');
+                map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+                //map.controls[google.maps.ControlPosition.TOP_LEFT].push(types);
 
-        function createMarker(place) {
-          var placeLoc = new google.maps.LatLng(place.latitude,place.longitude);
-          var marker = new google.maps.Marker({
-            map: map,
-            position: placeLoc,
-            title: place.name,
-            icon: place.icon
-          });
+                infowindow = new google.maps.InfoWindow();
+            }
 
-          google.maps.event.addListener(marker, 'click', function() {
-            var catalog = $.parseJSON(sessionStorage.getItem('pukeCatalog')) || [];
-            console.log(catalog);
-            console.log(catalog.toString());
-            var pukeValue = 0;
-            for (var i = catalog.length - 1; i >= 0; i--) {
-              if (catalog[i].placeId === place.id){
-                pukeValue = catalog[i].pukeVal;
-                break;
-              }
+            function createMarker(place) {
+              var placeLoc = new google.maps.LatLng(place.latitude,place.longitude);
+              var marker = new google.maps.Marker({
+                map: map,
+                position: placeLoc,
+                title: place.name,
+                icon: place.icon
+              });
+
+              markers.push(marker);
+
+              google.maps.event.addListener(marker, 'click', function() {
+                var catalog = $.parseJSON(sessionStorage.getItem('pukeCatalog')) || [];
+                var pukeValue = 0;
+                for (var i = catalog.length - 1; i >= 0; i--) {
+                  if (catalog[i].placeId === place.id){
+                    pukeValue = catalog[i].pukeVal;
+                    break;
+                  }
+                };
+
+                infowindow.setContent('<div><div class="place-info-window"> <strong>' + place.name + '</strong><br>' + place.vicinity + '</div> ' + 
+                  '<div class="place-info-window-bottom"> <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> <strong>puke?</strong><br/> ' +
+                  ' <input data-symbol="*" value="' + pukeValue +'" class="rb-rating" data-id="' + place.id +'"> </div> ' +
+                  '</div>');
+                infowindow.open(map, this);
+                $('.rb-rating').rating({
+                  'showCaption':true, 
+                  'stars':'3', 
+                  'min':'0', 'max':'3', 
+                  'step':'1', 'size':'xs', 
+                  'starCaptions': { 0: 'OK', 1:'Não me caiu bem...', 2:'Fiquei mal', 3:'Fui pro trono durante dias!' },
+                  'starCaptionClasses': { 1: 'label label-primary', 2: 'label label-warning', 3: 'label label-danger' }
+                });
+                $('.rb-rating').on('rating.change', function(e) {
+                  var puke = $(e.target);
+                  var pukeData = {
+                    placeId: puke.data('id'),
+                    pukeVal: puke.val()
+                  }
+                  $.ajax({
+                    url: Passeimal.GlobalConfig.resolveUrl('/places'),
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    data: JSON.stringify(pukeData)
+                  }).done(function(){
+                    var catalog = $.parseJSON(sessionStorage.getItem('pukeCatalog')) || [];
+                    //later save pukeId to allow user edit his puke
+                    catalog.push(pukeData);
+                    
+                    sessionStorage.setItem('pukeCatalog', JSON.stringify(catalog));
+                  });
+                });
+              });
             };
 
-            infowindow.setContent('<div><div class="place-info-window"> <strong>' + place.name + '</strong><br>' + place.formattedAddress + '</div> ' + 
-              '<div class="place-info-window-bottom"> <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> <strong>puke?</strong><br/> ' +
-              ' <input data-symbol="*" value="' + pukeValue +'" class="rb-rating" data-id="' + place.id +'"> </div> ' +
-              '</div>');
-            infowindow.open(map, this);
-            $('.rb-rating').rating({
-              'showCaption':true, 
-              'stars':'3', 
-              'min':'0', 'max':'3', 
-              'step':'1', 'size':'xs', 
-              'starCaptions': { 0: 'OK', 1:'Não me caiu bem...', 2:'Fiquei mal', 3:'Fui pro trono durante dias!' },
-              'starCaptionClasses': { 1: 'label label-primary', 2: 'label label-warning', 3: 'label label-danger' }
-            });
-            $('.rb-rating').on('rating.change', function(e) {
-              var puke = $(e.target);
-              var pukeData = {
-                placeId: puke.data('id'),
-                pukeVal: puke.val()
-              }
-              $.ajax({
-                url: Passeimal.GlobalConfig.resolveUrl('/places'),
-                method: 'PUT',
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify(pukeData)
-              }).done(function(){
-                var catalog = $.parseJSON(sessionStorage.getItem('pukeCatalog')) || [];
-                //later save pukeId to allow user edit his puke
-                catalog.push(pukeData);
-                
-                sessionStorage.setItem('pukeCatalog', JSON.stringify(catalog));
-              });
-            });
-          });
+            function removeMarkers(){
+              while(markers.length) 
+                markers.pop().setMap(null); 
+            }
 
-          google.maps.event.addListener(map,'dragend',function(e){
-            //console.log('dragend');
-            //console.log(e);
-          });
-
-          google.maps.event.addListener(map, 'idle', function(e) {
-            var center = map.getCenter();
-            console.log(Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + center.A + '&longitude=' + center.F));
-            $.ajax({
-              url: Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + center.A + '&longitude=' + center.F),
-              dataType: 'json'
-            }).done(function(data){
-              for (var i = 0; i < data.results.length; i++) {
-                console.log(data.results[i]);
-                createMarker(data.results[i]);
-              }
+            google.maps.event.addListener(map, 'idle', function(e) {
+                var center = map.getCenter();
+                console.log('idle');
+                console.log(Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + center.A + '&longitude=' + center.F));
+                $.ajax({
+                  url: Passeimal.GlobalConfig.resolveUrl('/places?latitude=' + center.A + '&longitude=' + center.F),
+                  dataType: 'json'
+                }).done(function(data){
+                  removeMarkers();
+                  for (var i = 0; i < data.results.length; i++) {
+                    createMarker(data.results[i]);
+                  }
+                });
             });
-          });
-        }
-
-        google.maps.event.addDomListener(window, 'load', initialize);
+        });
     </script>
 </html>

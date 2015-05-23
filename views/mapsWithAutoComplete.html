@@ -54,6 +54,12 @@
       }
 
     </style>
+    <script>
+      var Passeimal;
+      window.Passeimal = Passeimal = {};
+    </script>
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="../public/javascripts/passeimal.config.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
 
     <script>
@@ -89,7 +95,27 @@ function initialize() {
     infowindow.close();
     marker.setVisible(false);
     var place = autocomplete.getPlace();
-    console.log(place);
+    var customObj = {
+      Name: place.name,
+      GooglePlaceId: place.id,
+      Latitude: place.geometry.location.A,
+      Longitude:  place.geometry.location.F,
+      Vicinity: place.vicinity,
+      FormattedAddress: place.formatted_address,
+      Icon: "http://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png" 
+    }
+    console.log(JSON.stringify(customObj));
+
+    $.ajax({
+          url: Passeimal.GlobalConfig.resolveUrl('/places'),
+          method: 'POST',
+          contentType: 'application/json',
+          dataType: 'json',
+          data: JSON.stringify(customObj)
+        }).done(function(){
+          console.log('DATA SENT!!!!')
+        });
+
     if (!place.geometry) {
       window.alert("Autocomplete's returned place contains no geometry");
       return;
