@@ -11,3 +11,13 @@ span.remove:hover{
 .step-item{
 	font-size:1.2em;
 }
+
+.rating-image {
+  display: block;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  background: url(../images/sick-16x16x32.png) no-repeat;
+  width: 16px; /* Width of new image */
+  height: 16px; /* Height of new image */
+  /*padding-left: 180px; /* Equal to width of new image */
+}
